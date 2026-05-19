@@ -1,0 +1,222 @@
+export default function UltimatePedigreeTrainer() { const inheritanceTypes = [ { type: "Autosomal Recessive", clues: [ "Trait skips generation", "Normal parents can produce affected child", "Males and females equally affected" ], smf: "Skip = recessive + equal genders = autosomal" }, { type: "Autosomal Dominant", clues: [ "Trait appears in every generation", "Father to son transmission present", "Males and females equally affected" ], smf: "No skip = dominant + father-son possible" }, { type: "X-Linked Recessive", clues: [ "Mostly males affected", "Trait skips generation", "No father-son transmission" ], smf: "Male-heavy + skip + no father-son" }, { type: "X-Linked Dominant", clues: [ "Affected father gives trait to all daughters", "Trait appears every generation", "No father-son transmission" ], smf: "All daughters affected from father" }, { type: "Y-Linked", clues: [ "Only males affected", "Father to all sons", "No affected females" ], smf: "Only males + father to son always" } ];
+
+const difficulties = { Easy: 30, Medium: 20, Hard: 10 };
+
+const [difficulty, setDifficulty] = React.useState("Easy"); const [score, setScore] = React.useState(0); const [streak, setStreak] = React.useState(0); const [timeLeft, setTimeLeft] = React.useState(difficulties["Easy"]); const [showHint, setShowHint] = React.useState(false); const [mode, setMode] = React.useState("Infinite Mode");
+
+const generateQuestion = () => { const random = inheritanceTypes[Math.floor(Math.random() * inheritanceTypes.length)];
+
+const wrongOptions = inheritanceTypes
+  .filter((x) => x.type !== random.type)
+  .sort(() => Math.random() - 0.5)
+  .slice(0, 3)
+  .map((x) => x.type);
+
+const options = [...wrongOptions, random.type].sort(() => Math.random() - 0.5);
+
+return {
+  answer: random.type,
+  clues: random.clues,
+  smf: random.smf,
+  options
+};
+
+};
+
+const [question, setQuestion] = React.useState(generateQuestion()); const [selected, setSelected] = React.useState("");
+
+React.useEffect(() => { if (timeLeft <= 0) { nextQuestion(false); return; }
+
+const timer = setInterval(() => {
+  setTimeLeft((prev) => prev - 1);
+}, 1000);
+
+return () => clearInterval(timer);
+
+}, [timeLeft]);
+
+const nextQuestion = (correct) => { if (correct) { setScore((s) => s + 1); setStreak((s) => s + 1); } else { setStreak(0); }
+
+setQuestion(generateQuestion());
+setSelected("");
+setShowHint(false);
+setTimeLeft(difficulties[difficulty]);
+
+};
+
+const choose = (option) => { setSelected(option);
+
+setTimeout(() => {
+  nextQuestion(option === question.answer);
+}, 1000);
+
+};
+
+const pedigreeVisual = () => { return ( <div className="flex flex-col items-center mt-6 gap-6"> <div className="flex items-center gap-10"> <div className="flex flex-col items-center"> <div className="w-16 h-16 rounded-full border-4 border-white bg-white"></div> <span className="text-sm mt-2">♀️</span> </div>
+
+<div className="w-20 h-1 bg-white"></div>
+
+      <div className="flex flex-col items-center">
+        <div className="w-16 h-16 border-4 border-white bg-white"></div>
+        <span className="text-sm mt-2">♂️</span>
+      </div>
+    </div>
+
+    <div className="h-10 w-1 bg-white"></div>
+
+    <div className="flex gap-12">
+      <div className="flex flex-col items-center">
+        <div className={w-14 h-14 rounded-full border-4 border-white ${question.answer.includes('Dominant') ? 'bg-red-500' : 'bg-white'}}></div>
+      </div>
+
+      <div className="flex flex-col items-center">
+        <div className={w-14 h-14 border-4 border-white ${question.answer.includes('Recessive') || question.answer === 'Y-Linked' ? 'bg-red-500' : 'bg-white'}}></div>
+      </div>
+    </div>
+  </div>
+);
+
+};
+
+return ( <div className="min-h-screen bg-gradient-to-br from-black via-slate-950 to-slate-900 text-white p-6"> <div className="max-w-5xl mx-auto">
+
+<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+      <div>
+        <h1 className="text-5xl font-black">NEET Pedigree Master ⚡</h1>
+        <p className="text-slate-300 mt-2 text-lg">
+          Infinite pedigree questions + charts + SMF elimination tricks.
+        </p>
+      </div>
+
+      <div className="flex gap-4 flex-wrap">
+        <div className="bg-slate-800 px-5 py-3 rounded-2xl font-bold">
+          🏆 Score: {score}
+        </div>
+
+        <div className="bg-orange-500 text-black px-5 py-3 rounded-2xl font-black">
+          🔥 Streak: {streak}
+        </div>
+
+        <div className="bg-red-500 px-5 py-3 rounded-2xl font-black text-xl">
+          ⏳ {timeLeft}s
+        </div>
+      </div>
+    </div>
+
+    <div className="grid md:grid-cols-3 gap-4 mb-6">
+      <button
+        onClick={() => setMode("Infinite Mode")}
+        className="bg-blue-600 p-4 rounded-2xl font-bold hover:scale-105 transition"
+      >
+        ♾ Infinite Mode
+      </button>
+
+      <button
+        onClick={() => setMode("PYQ Mode")}
+        className="bg-purple-600 p-4 rounded-2xl font-bold hover:scale-105 transition"
+      >
+        📘 PYQ Mode
+      </button>
+
+      <button
+        onClick={() => setMode("Mock Test")}
+        className="bg-green-600 p-4 rounded-2xl font-bold hover:scale-105 transition"
+      >
+        📝 NEET Mock Mode
+      </button>
+    </div>
+
+    <div className="flex gap-4 mb-6 flex-wrap">
+      {Object.keys(difficulties).map((level) => (
+        <button
+          key={level}
+          onClick={() => {
+            setDifficulty(level);
+            setTimeLeft(difficulties[level]);
+          }}
+          className={px-5 py-3 rounded-2xl font-bold transition ${difficulty === level ? 'bg-yellow-400 text-black' : 'bg-slate-700'}}
+        >
+          {level}
+        </button>
+      ))}
+    </div>
+
+    <div className="bg-slate-900 border border-slate-700 rounded-3xl p-8 shadow-2xl">
+      <div className="flex justify-between items-center mb-4">
+        <span className="bg-cyan-500 text-black px-4 py-2 rounded-full font-black">
+          {mode}
+        </span>
+
+        <button
+          onClick={() => setShowHint(!showHint)}
+          className="bg-yellow-400 text-black px-4 py-2 rounded-2xl font-black hover:scale-105 transition"
+        >
+          🧠 SMF Hint
+        </button>
+      </div>
+
+      <div className="bg-slate-800 rounded-2xl p-6 text-xl leading-relaxed mb-6">
+        <h2 className="text-3xl font-black mb-4">Pedigree Clues</h2>
+
+        <ul className="space-y-3">
+          {question.clues.map((clue, idx) => (
+            <li key={idx}>• {clue}</li>
+          ))}
+        </ul>
+      </div>
+
+      {pedigreeVisual()}
+
+      {showHint && (
+        <div className="mt-6 bg-yellow-400 text-black p-5 rounded-2xl text-xl font-bold">
+          🔥 {question.smf}
+        </div>
+      )}
+
+      <div className="grid md:grid-cols-2 gap-5 mt-10">
+        {question.options.map((option) => {
+          const correct = option === question.answer;
+          const chosen = selected === option;
+
+          return (
+            <button
+              key={option}
+              onClick={() => choose(option)}
+              className={`p-5 rounded-2xl text-lg font-black transition-all duration-200 ${
+                !selected
+                  ? 'bg-slate-700 hover:bg-slate-600 hover:scale-105'
+                  : correct
+                  ? 'bg-green-500 text-black'
+                  : chosen
+                  ? 'bg-red-500'
+                  : 'bg-slate-800 opacity-60'
+              }`}
+            >
+              {option}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+
+    <div className="mt-8 bg-slate-900 border border-slate-700 rounded-3xl p-6">
+      <h2 className="text-2xl font-black mb-4">⚡ Ultimate SMF Shortcut</h2>
+
+      <div className="grid md:grid-cols-3 gap-4 text-lg font-bold">
+        <div className="bg-slate-800 p-4 rounded-2xl">
+          S → Skip = Recessive
+        </div>
+
+        <div className="bg-slate-800 p-4 rounded-2xl">
+          M → Male-heavy = X-linked
+        </div>
+
+        <div className="bg-slate-800 p-4 rounded-2xl">
+          F → Father-son = NOT X-linked
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+); }
